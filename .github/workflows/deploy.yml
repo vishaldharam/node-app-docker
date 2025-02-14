@@ -29,9 +29,8 @@ jobs:
           credentials_json: "${{ secrets.GCP_SA_KEY }}"
           project_id: ${{ env.PROJECT_ID }}
 
-      - name: Configure Docker for Artifact Registry
-        run: |
-          gcloud auth configure-docker asia-south1-docker.pkg.dev
+      - name: Authenticate Docker with Google Artifact Registry
+        run: gcloud auth configure-docker asia-south1-docker.pkg.dev
 
       - name: Set Up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -41,11 +40,8 @@ jobs:
         with:
           context: ./
           file: ./Dockerfile
-          builder: ${{ steps.buildx.outputs.name }}
           push: true
           tags: ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
-          cache-from: type=registry,ref=${{ env.DOCKER_IMAGE }}:latest
-          cache-to: type=inline
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
@@ -54,4 +50,3 @@ jobs:
           image: ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
           region: ${{ env.REGION }}
           allow-unauthenticated: true
-
