@@ -7,9 +7,9 @@ on:
 
 env:
   SERVICE_NAME: node-app
-  PROJECT_ID: your-project-id
+  PROJECT_ID: careful-journey-448903-q1
   REGION: asia-south1
-  DOCKER_IMAGE: asia-south1-docker.pkg.dev/your-project-id/node-app/node-app
+  DOCKER_IMAGE: asia-south1-docker.pkg.dev/careful-journey-448903-q1/node-app/node-app
 
 permissions:
   id-token: write
