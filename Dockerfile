@@ -12,9 +12,6 @@ RUN npm install --production
 # Copy the rest of the application files (ignores node_modules if .dockerignore is used)
 COPY . .  
 
-# Build the project (if required)
-RUN npm run build
-
 # Stage 2: Production
 FROM node:18-alpine
 
