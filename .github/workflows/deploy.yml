@@ -1,0 +1,57 @@
+name: Deploy to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  SERVICE_NAME: node-app
+  PROJECT_ID: your-project-id
+  REGION: asia-south1
+  DOCKER_IMAGE: asia-south1-docker.pkg.dev/your-project-id/node-app/node-app
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set Up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker asia-south1-docker.pkg.dev
+
+      - name: Set Up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v3
+        with:
+          context: ./
+          file: ./Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_IMAGE }}:latest
+          cache-to: type=inline
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          image: ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+          region: ${{ env.REGION }}
+          allow-unauthenticated: true
+
